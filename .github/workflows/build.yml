@@ -35,25 +35,21 @@ jobs:
           git clone https://github.com/pgbouncer/pgbouncer.git
           REPO_TAG=$(git --git-dir=pgbouncer/.git tag | sort -V | tail -n 1 | tr '_' '.' | sed -e 's/^pgbouncer.//')
           PREVIOUS_TAG=$(cat REVISION || echo "")
+          mkdir temp/
           if [ "$REPO_TAG" = "$PREVIOUS_TAG" ]; then
             echo "No new tags. Skipping."
             echo "skipped=true" >> $GITHUB_ENV
-            echo $REPO_TAG > REVISION
+            echo $REPO_TAG > temp/REVISION
             exit 0
           fi
-          cd pgbouncer
-          git checkout "pgbouncer_${REPO_TAG//./_}"
-          git submodule init
-          git submodule update
-          cd ..
           VERSION="$REPO_TAG"
           echo "VERSION=$VERSION" >> $GITHUB_ENV
-          echo $REPO_TAG > REVISION
+          echo $REPO_TAG > temp/REVISION
 
       - name: AWS CLI v2
         uses: imehedi/actions-awscli-v2@latest
         with:
-          args: s3 cp REVISION s3://${{ vars.SC_ARTIFACTS_BUCKET }}/pgbouncer-docker/REVISION --endpoint-url ${{ vars.SC_AMS_AWS_ENDPOINT }}
+          args: s3 cp temp/REVISION s3://${{ vars.SC_ARTIFACTS_BUCKET }}/pgbouncer-docker/REVISION --endpoint-url ${{ vars.SC_AMS_AWS_ENDPOINT }}
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.SC_AWS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.SC_AWS_SECRET_ACCESS_KEY }}
@@ -95,3 +91,4 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           provenance: false
+          build-args: REPO_TAG=${{ env.VERSION }}

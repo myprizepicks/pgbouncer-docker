@@ -1,9 +1,9 @@
 # docker build -t pgbouncer-docker:custom .
-
 # This image is made to work with the related Helm chart. It lacks config files on purpose.
 
 # Build stage
 FROM alpine:3.17 as build
+ARG REPO_TAG
 
 # Install build dependencies
 RUN apk add -U --no-cache \
@@ -21,10 +21,17 @@ RUN apk add -U --no-cache \
     make \
     openssl-dev \
     pkgconfig \
-    postgresql-client
+    postgresql-client \
+    git
 
-# Copy local pgbouncer directory
-COPY pgbouncer /tmp/pgbouncer
+# Clone pgbouncer repository
+RUN git clone https://github.com/pgbouncer/pgbouncer.git /tmp/pgbouncer
+
+# Checkout the desired version
+RUN cd /tmp/pgbouncer &&
+    git checkout "pgbouncer_${REPO_TAG//./_}" &&
+    git submodule init &&
+    git submodule update
 
 # Compile
 WORKDIR /tmp/pgbouncer
