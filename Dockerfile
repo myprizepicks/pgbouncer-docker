@@ -1,4 +1,4 @@
-# docker build -t pgbouncer-docker:custom .
+# docker build -t pgbouncer-docker:1.19.1 --build-arg REPO_TAG=1.19.1 .
 # This image is made to work with the related Helm chart. It lacks config files on purpose.
 
 # Build stage
@@ -26,13 +26,16 @@ RUN apk add -U --no-cache \
 
 # Clone pgbouncer repository
 RUN git clone https://github.com/pgbouncer/pgbouncer.git /tmp/pgbouncer
-RUN cd /tmp/pgbouncer
+
+# Checkout the desired version
+WORKDIR /tmp/pgbouncer
 RUN git checkout "pgbouncer_${REPO_TAG//./_}"
+
+# Initialize and update submodules
 RUN git submodule init
 RUN git submodule update
 
 # Compile
-WORKDIR /tmp/pgbouncer
 RUN ./autogen.sh
 RUN ./configure --prefix=/usr --with-udns
 RUN make
