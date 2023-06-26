@@ -1,6 +1,7 @@
-# 💻 PgBouncer Docker Image
+# 💻 PgBouncer Multiarch Docker Image
 
- This repository hosts an automated build system for creating 🐳 Docker images of [PgBouncer](https://www.pgbouncer.org/). The built Docker images are also hosted in this repository for easy access and usage.
+ This repository hosts an automated build system for creating 🐳 Docker images of [PgBouncer](https://www.pgbouncer.org/).
+ The built AMD64/ARM64 Docker images are also [hosted in this repository](https://github.com/icoretech/pgbouncer-docker/pkgs/container/pgbouncer-docker) with semantic tagging.
 
 ## 📖 Overview
 
