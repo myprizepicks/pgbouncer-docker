@@ -26,12 +26,10 @@ RUN apk add -U --no-cache \
 
 # Clone pgbouncer repository
 RUN git clone https://github.com/pgbouncer/pgbouncer.git /tmp/pgbouncer
-
-# Checkout the desired version
-RUN cd /tmp/pgbouncer &&
-    git checkout "pgbouncer_${REPO_TAG//./_}" &&
-    git submodule init &&
-    git submodule update
+RUN cd /tmp/pgbouncer
+RUN git checkout "pgbouncer_${REPO_TAG//./_}"
+RUN git submodule init
+RUN git submodule update
 
 # Compile
 WORKDIR /tmp/pgbouncer
