@@ -21,6 +21,8 @@ Replace `<tag>` with the specific version you wish to pull.
 
 You can find the available tags on the [GitHub Packages page](https://github.com/icoretech/pgbouncer-docker/pkgs/container/pgbouncer-docker) for this repository.
 
+Upon start the image will look for `/etc/pgbouncer/pgbouncer.ini`.
+
 ## 📄 License
 
 The Docker images and the code in this repository are released under [MIT License](LICENSE).
