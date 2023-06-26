@@ -38,7 +38,7 @@ jobs:
           mkdir temp/
           if [ "$REPO_TAG" = "$PREVIOUS_TAG" ]; then
             echo "No new tags. Skipping."
-            echo "skipped=true" >> $GITHUB_ENV
+            echo "skipped=true" >> $GITHUB_OUTPUT
             echo $REPO_TAG > temp/REVISION
             exit 0
           fi
