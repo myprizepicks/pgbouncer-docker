@@ -5,7 +5,7 @@
 
 ## 📖 Overview
 
-The build system automates the process of pulling the latest code from the main branch of the PgBouncer project weekly, packaging it into a Docker image, and publishing the image.
+The build system automates the process of pulling the latest code from the main branch of the PgBouncer project, packaging it into a Docker image, and publishing the image.
 
 ⚡️ We now have a [Helm chart available for deploying PgBouncer](https://github.com/icoretech/helm).
 
