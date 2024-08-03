@@ -2,7 +2,7 @@
 # This image is made to work with the related Helm chart. It lacks config files on purpose.
 
 # Build stage
-FROM alpine:3.17 as build
+FROM alpine:3.18 as build
 ARG REPO_TAG
 
 # Install build dependencies
@@ -42,7 +42,7 @@ RUN make
 RUN make install
 
 # Runtime stage
-FROM alpine:3.17
+FROM alpine:3.18
 
 # Install runtime dependencies
 RUN apk add -U --no-cache busybox udns libevent postgresql-client
