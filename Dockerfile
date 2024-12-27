@@ -12,8 +12,6 @@ RUN apk add -U --no-cache \
     automake \
     libtool \
     pandoc \
-    udns \
-    udns-dev \
     curl \
     gcc \
     libc-dev \
@@ -38,7 +36,7 @@ RUN git submodule update
 
 # Compile
 RUN ./autogen.sh
-RUN ./configure --prefix=/usr --with-udns
+RUN ./configure --prefix=/usr
 RUN make
 RUN make install
 
@@ -46,7 +44,7 @@ RUN make install
 FROM alpine:3.21
 
 # Install runtime dependencies
-RUN apk add -U --no-cache busybox udns libevent postgresql-client
+RUN apk add -U --no-cache busybox libevent postgresql-client
 
 # Copy necessary files from build stage
 COPY --from=build /usr/bin/pgbouncer /usr/bin/
