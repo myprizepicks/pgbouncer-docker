@@ -1,8 +1,9 @@
-# docker build -t pgbouncer-docker:1.19.1 --build-arg REPO_TAG=1.19.1 .
+# docker build -t pgbouncer-docker:1.23.1-fixed --build-arg REPO_TAG=1.23.1-fixed .
+# docker run pgbouncer-docker:1.23.1-fixed
 # This image is made to work with the related Helm chart. It lacks config files on purpose.
 
 # Build stage
-FROM alpine:3.18 as build
+FROM alpine:3.21 AS build
 ARG REPO_TAG
 
 # Install build dependencies
@@ -42,16 +43,17 @@ RUN make
 RUN make install
 
 # Runtime stage
-FROM alpine:3.18
+FROM alpine:3.21
 
 # Install runtime dependencies
 RUN apk add -U --no-cache busybox udns libevent postgresql-client
 
 # Copy necessary files from build stage
 COPY --from=build /usr/bin/pgbouncer /usr/bin/
+# COPY --from=build /tmp/pgbouncer/etc/pgbouncer.ini /etc/pgbouncer/pgbouncer.ini
 
 # Setup directories
-RUN mkdir -p /etc/pgbouncer /var/log/pgbouncer /var/run/pgbouncer && chown -R postgres /var/run/pgbouncer /etc/pgbouncer
+RUN mkdir -p /etc/pgbouncer /var/log/pgbouncer /var/run/pgbouncer && chown -R postgres /var/run/pgbouncer /etc/pgbouncer /var/log/pgbouncer
 
 USER postgres
 EXPOSE 5432
