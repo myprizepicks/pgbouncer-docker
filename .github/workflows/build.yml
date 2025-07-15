@@ -2,8 +2,8 @@ name: Build and publish
 
 on:
   workflow_dispatch:
-  schedule:
-    - cron: "0 1 * * *"
+  # schedule:
+  #   - cron: "0 1 * * *"
 
 jobs:
   build:
@@ -13,15 +13,15 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: AWS CLI v2
-        uses: imehedi/actions-awscli-v2@latest
-        continue-on-error: true
-        with:
-          args: s3 cp s3://${{ vars.SC_ARTIFACTS_BUCKET }}/pgbouncer-docker/REVISION . --endpoint-url ${{ vars.SC_AMS_AWS_ENDPOINT }}
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.SC_AWS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.SC_AWS_SECRET_ACCESS_KEY }}
-          AWS_DEFAULT_REGION: "nl-ams"
+      # - name: AWS CLI v2
+      #   uses: imehedi/actions-awscli-v2@latest
+      #   continue-on-error: true
+      #   with:
+      #     args: s3 cp s3://${{ vars.SC_ARTIFACTS_BUCKET }}/pgbouncer-docker/REVISION . --endpoint-url ${{ vars.SC_AMS_AWS_ENDPOINT }}
+      #   env:
+      #     AWS_ACCESS_KEY_ID: ${{ secrets.SC_AWS_KEY_ID }}
+      #     AWS_SECRET_ACCESS_KEY: ${{ secrets.SC_AWS_SECRET_ACCESS_KEY }}
+      #     AWS_DEFAULT_REGION: "nl-ams"
 
       - name: Tag
         id: tag
@@ -39,15 +39,6 @@ jobs:
           VERSION="$REPO_TAG"
           echo "VERSION=$VERSION" >> $GITHUB_ENV
           echo $REPO_TAG > temp/REVISION
-
-      - name: AWS CLI v2
-        uses: imehedi/actions-awscli-v2@latest
-        with:
-          args: s3 cp temp/REVISION s3://${{ vars.SC_ARTIFACTS_BUCKET }}/pgbouncer-docker/REVISION --endpoint-url ${{ vars.SC_AMS_AWS_ENDPOINT }}
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.SC_AWS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.SC_AWS_SECRET_ACCESS_KEY }}
-          AWS_DEFAULT_REGION: "nl-ams"
 
       - name: Set up QEMU
         if: ${{ steps.tag.outputs.skipped != 'true' }}
@@ -67,12 +58,12 @@ jobs:
             io.artifacthub.package.category=database
             io.artifacthub.package.keywords=postgresql,postgres,pgbouncer
             io.artifacthub.package.license=MIT
-            io.artifacthub.package.maintainers=[{"name":"Claudio Poli","email":"claudio@icorete.ch"}]
-            io.artifacthub.package.readme-url=https://github.com/icoretech/pgbouncer-docker/blob/main/README.md
+            io.artifacthub.package.maintainers=[{"name":"PrizePicks Infrastructure","email":"devops@prizepicks.com"}]
+            io.artifacthub.package.readme-url=https://github.com/myprizepicks/pgbouncer-docker/blob/main/README.md
             org.opencontainers.image.description=PgBouncer
-            org.opencontainers.image.source=https://github.com/icoretech/pgbouncer-docker
+            org.opencontainers.image.source=https://github.com/myprizepicks/pgbouncer-docker
             org.opencontainers.image.title=pgbouncer
-            org.opencontainers.image.vendor=iCoreTech, Inc.
+            org.opencontainers.image.vendor=PrizePicks DevOps
           tags: |
             type=raw,value=${{ env.VERSION }}
 
