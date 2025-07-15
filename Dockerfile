@@ -18,10 +18,13 @@ RUN apk add -U --no-cache \
     libevent \
     libevent-dev \
     make \
+    openssl \
     openssl-dev \
     pkgconfig \
     postgresql-client \
     git
+
+RUN mkdir -p /etc/ssl/private && mkdir -p /etc/ssl/cert && openssl req -x509 -newkey rsa:4096 -keyout /etc/ssl/private/pgbouncer.pem -out /etc/ssl/cert/pgbouncer.pem -sha256 -days 3650 -nodes -subj "/C=US/ST=GA/L=Atlanta/O=PrizePicks/OU=DevOps/CN=pgbouncer"
 
 # Clone pgbouncer repository
 RUN git clone https://github.com/pgbouncer/pgbouncer.git /tmp/pgbouncer
@@ -48,7 +51,8 @@ RUN apk add -U --no-cache busybox libevent postgresql-client
 
 # Copy necessary files from build stage
 COPY --from=build /usr/bin/pgbouncer /usr/bin/
-# COPY --from=build /tmp/pgbouncer/etc/pgbouncer.ini /etc/pgbouncer/pgbouncer.ini
+COPY --from=build /etc/ssl/private/pgbouncer.pem /etc/ssl/private/pgbouncer.pem
+COPY --from=build /etc/ssl/cert/pgbouncer.pem /etc/ssl/cert/pgbouncer.pem
 
 # Setup directories
 RUN mkdir -p /etc/pgbouncer /var/log/pgbouncer /var/run/pgbouncer && chown -R postgres /var/run/pgbouncer /etc/pgbouncer /var/log/pgbouncer
