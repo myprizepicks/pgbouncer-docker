@@ -3,12 +3,6 @@ run-name: ${{ github.actor }} - requested build
 
 on:
   workflow_dispatch:
-    inputs:
-      OverrideTag:
-        description: "Set a specific tag version using the format of N.N.N"
-        required: false
-        type: string
-        default: "false"
 
 env:
   DOCKERFILE_LOCATION: "./Dockerfile"
