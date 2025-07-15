@@ -1,9 +1,15 @@
 name: Build and publish
+run-name: ${{ github.actor }} - requested build
 
 on:
   workflow_dispatch:
-  # schedule:
-  #   - cron: "0 1 * * *"
+
+env:
+  DOCKERFILE_LOCATION: ./Dockerfile
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}   # https://docs.github.com/en/actions/security-guides/automatic-token-authentication
+  IMAGE_NAME: pgbouncer-docker
+  REPO_TAG: 1.24.1
+  # PAT_ORG_TOKEN: ${{ secrets.PAT_ORG_TOKEN }} # https://docs.github.com/en/github/authenticating-to-github/creating-a-personal-access-token
 
 jobs:
   build:
@@ -13,75 +19,70 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # - name: AWS CLI v2
-      #   uses: imehedi/actions-awscli-v2@latest
-      #   continue-on-error: true
-      #   with:
-      #     args: s3 cp s3://${{ vars.SC_ARTIFACTS_BUCKET }}/pgbouncer-docker/REVISION . --endpoint-url ${{ vars.SC_AMS_AWS_ENDPOINT }}
-      #   env:
-      #     AWS_ACCESS_KEY_ID: ${{ secrets.SC_AWS_KEY_ID }}
-      #     AWS_SECRET_ACCESS_KEY: ${{ secrets.SC_AWS_SECRET_ACCESS_KEY }}
-      #     AWS_DEFAULT_REGION: "nl-ams"
-
-      - name: Tag
-        id: tag
+      - name: Metadata seeds
+        id: seeds
+        shell: bash
         run: |
-          git clone https://github.com/pgbouncer/pgbouncer.git
-          REPO_TAG=$(git --git-dir=pgbouncer/.git tag | sort -V | tail -n 1 | tr '_' '.' | sed -e 's/^pgbouncer.//')
-          PREVIOUS_TAG=$(cat REVISION || echo "")
-          mkdir temp/
-          if [ "$REPO_TAG" = "$PREVIOUS_TAG" ]; then
-            echo "No new tags. Skipping."
-            echo "skipped=true" >> $GITHUB_OUTPUT
-            echo $REPO_TAG > temp/REVISION
-            exit 0
-          fi
-          VERSION="$REPO_TAG"
-          echo "VERSION=$VERSION" >> $GITHUB_ENV
-          echo $REPO_TAG > temp/REVISION
+          DATE=$(date +'%Y-%m-%d')
+          echo shortref=${GITHUB_SHA:0:7} > $GITHUB_OUTPUT
+          echo "date=$DATE"               >> $GITHUB_OUTPUT
 
-      - name: Set up QEMU
-        if: ${{ steps.tag.outputs.skipped != 'true' }}
-        uses: docker/setup-qemu-action@v3
-
-      - name: Set up Docker Buildx
-        if: ${{ steps.tag.outputs.skipped != 'true' }}
-        uses: docker/setup-buildx-action@v3
-        
-      - name: Extract metadata (tags, labels) for Docker
+      - name: Generating docker metadata
         id: meta
-        if: ${{ steps.tag.outputs.skipped != 'true' }}
         uses: docker/metadata-action@v5
         with:
-          images: ghcr.io/icoretech/pgbouncer-docker
-          labels: |
-            io.artifacthub.package.category=database
-            io.artifacthub.package.keywords=postgresql,postgres,pgbouncer
-            io.artifacthub.package.license=MIT
-            io.artifacthub.package.maintainers=[{"name":"PrizePicks Infrastructure","email":"devops@prizepicks.com"}]
-            io.artifacthub.package.readme-url=https://github.com/myprizepicks/pgbouncer-docker/blob/main/README.md
-            org.opencontainers.image.description=PgBouncer
-            org.opencontainers.image.source=https://github.com/myprizepicks/pgbouncer-docker
-            org.opencontainers.image.title=pgbouncer
-            org.opencontainers.image.vendor=PrizePicks DevOps
+          images: |
+            ghcr.io/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}
+          flavor: |
+            latest=auto
           tags: |
-            type=raw,value=${{ env.VERSION }}
+            type=raw,prefix=,suffix=,value=${{ steps.seeds.outputs.shortref }}
+            type=raw,prefix=,suffix=,value=latest
+            type=raw,prefix=,suffix=,value=pgbouncer-${{ env.REPO_TAG }}
+
+          labels: |
+            org.opencontainers.image.created=${{ steps.seeds.outputs.date }}
+            org.opencontainers.image.title=${{ env.IMAGE_NAME }}
+            org.opencontainers.image.source="https://github.com/${{ github.repository }}"
+            org.opencontainers.image.description='Generated from automation.'
+            pgbouncer.version=${{ env.REPO_TAG }}
+            shortref=${{ steps.seeds.outputs.shortref }}
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Context
+        run: |
+          docker context create builders || true
+          docker context use default
+
+      - name: Set up Docker Buildx
+        id: buildx
+        uses: docker/setup-buildx-action@v3
+        with:
+          install: true
 
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v3
-        if: ${{ steps.tag.outputs.skipped != 'true' }}
         with:
           registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.PACKAGES_PAT }}
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build and push Docker image
+      - name: Build image
+        id: build
         uses: docker/build-push-action@v6
-        if: ${{ steps.tag.outputs.skipped != 'true' }}
         with:
-          platforms: linux/amd64,linux/arm64
-          push: ${{ github.event_name != 'pull_request' }}
+          context: .
+          file: ${{ env.DOCKERFILE_LOCATION }}
+          build-args: |
+            REPO_TAG=${{ env.REPO_TAG }}
+          load: ${{ false }} # Will only build
+          push: ${{ true }}  # Will build and push
+          platforms: linux/amd64
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          provenance: mode=max
-          build-args: REPO_TAG=${{ env.VERSION }}
+          builder: ${{ steps.buildx.outputs.name }}
+          cache-from: type=registry,ref=ghcr.io/${{ github.repository }}:buildcache
+          cache-to: type=registry,ref=ghcr.io/${{ github.repository }}:buildcache,mode=max
+          # secrets: ${{ secrets.GITHUB_TOKEN }}
