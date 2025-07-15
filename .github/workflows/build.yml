@@ -37,7 +37,7 @@ jobs:
             latest=auto
           tags: |
             type=raw,prefix=,suffix=,value=${{ steps.seeds.outputs.shortref }}
-            type=raw,prefix=,suffix=,value="latest"
+            type=raw,prefix=,suffix=,value=latest
 
           labels: |
             org.opencontainers.image.created=${{ steps.seeds.outputs.date }}
