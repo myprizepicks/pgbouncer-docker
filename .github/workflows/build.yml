@@ -8,6 +8,7 @@ env:
   DOCKERFILE_LOCATION: ./Dockerfile
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}   # https://docs.github.com/en/actions/security-guides/automatic-token-authentication
   IMAGE_NAME: pgbouncer-docker
+  REPO_TAG: 1.24.1
   # PAT_ORG_TOKEN: ${{ secrets.PAT_ORG_TOKEN }} # https://docs.github.com/en/github/authenticating-to-github/creating-a-personal-access-token
 
 jobs:
@@ -37,12 +38,14 @@ jobs:
           tags: |
             type=raw,prefix=,suffix=,value=${{ steps.seeds.outputs.shortref }}
             type=raw,prefix=,suffix=,value=latest
+            type=raw,prefix=,suffix=,value=pgbouncer-${{ env.REPO_TAG }}
 
           labels: |
             org.opencontainers.image.created=${{ steps.seeds.outputs.date }}
             org.opencontainers.image.title=${{ env.IMAGE_NAME }}
             org.opencontainers.image.source="https://github.com/${{ github.repository }}"
             org.opencontainers.image.description='Generated from automation.'
+            pgbouncer.version=${{ env.REPO_TAG }}
             shortref=${{ steps.seeds.outputs.shortref }}
 
       - name: Set up QEMU
@@ -72,6 +75,8 @@ jobs:
         with:
           context: .
           file: ${{ env.DOCKERFILE_LOCATION }}
+          build-args: |
+            REPO_TAG=${{ env.REPO_TAG }}
           load: ${{ false }} # Will only build
           push: ${{ true }}  # Will build and push
           platforms: linux/amd64
