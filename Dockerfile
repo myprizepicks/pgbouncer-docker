@@ -52,7 +52,7 @@ RUN apk add -U --no-cache busybox libevent postgresql-client
 # Copy necessary files from build stage
 COPY --from=build /usr/bin/pgbouncer /usr/bin/
 COPY --from=build /etc/ssl/private/pgbouncer.pem /etc/ssl/private/pgbouncer.pem
-COPY --from=build /etc/ssl/cert/pgbouncer.pem /etc/ssl/cert/pgbouncer.pem
+COPY --from=build /etc/ssl/certs/pgbouncer.pem /etc/ssl/cert/pgbouncer.pem
 
 # Setup directories
 RUN mkdir -p /etc/pgbouncer /var/log/pgbouncer /var/run/pgbouncer && chown -R postgres /var/run/pgbouncer /etc/pgbouncer /var/log/pgbouncer
