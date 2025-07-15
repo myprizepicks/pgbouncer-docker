@@ -6,7 +6,6 @@ on:
 
 env:
   DOCKERFILE_LOCATION: ./Dockerfile
-  DOCKER_CONTEXT: .
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}   # https://docs.github.com/en/actions/security-guides/automatic-token-authentication
   IMAGE_NAME: pgbouncer-docker
   # PAT_ORG_TOKEN: ${{ secrets.PAT_ORG_TOKEN }} # https://docs.github.com/en/github/authenticating-to-github/creating-a-personal-access-token
@@ -49,11 +48,15 @@ jobs:
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
 
+      - name: Set up Docker Context
+        run: |
+          docker context create builders || true
+          docker context use default
+
       - name: Set up Docker Buildx
         id: buildx
         uses: docker/setup-buildx-action@v3
         with:
-          driver: "docker-container"
           install: true
 
       - name: Login to GitHub Container Registry
@@ -67,7 +70,7 @@ jobs:
         id: build
         uses: docker/build-push-action@v6
         with:
-          context: ${{ env.DOCKER_CONTEXT }}
+          context: .
           file: ${{ env.DOCKERFILE_LOCATION }}
           load: ${{ false }} # Will only build
           push: ${{ true }}  # Will build and push
