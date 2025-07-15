@@ -5,10 +5,10 @@ on:
   workflow_dispatch:
 
 env:
-  DOCKERFILE_LOCATION: "./Dockerfile"
-  DOCKER_CONTEXT: "."
+  DOCKERFILE_LOCATION: ./Dockerfile
+  DOCKER_CONTEXT: .
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}   # https://docs.github.com/en/actions/security-guides/automatic-token-authentication
-  IMAGE_NAME: "pgbouncer-docker"
+  IMAGE_NAME: pgbouncer-docker
   # PAT_ORG_TOKEN: ${{ secrets.PAT_ORG_TOKEN }} # https://docs.github.com/en/github/authenticating-to-github/creating-a-personal-access-token
 
 jobs:
@@ -68,10 +68,10 @@ jobs:
           context: ${{ env.DOCKER_CONTEXT }}
           file: ${{ env.DOCKERFILE_LOCATION }}
           load: ${{ false }} # Will only build
-          push: ${{ true }}        # Will build and push
+          push: ${{ true }}  # Will build and push
           platforms: linux/amd64
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=registry,ref=ghcr.io/${{ github.repository }}:buildcache
           cache-to: type=registry,ref=ghcr.io/${{ github.repository }}:buildcache,mode=max
-          secrets: ${{ secrets.GITHUB_TOKEN }}
+          # secrets: ${{ secrets.GITHUB_TOKEN }}
