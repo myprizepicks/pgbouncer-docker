@@ -24,7 +24,7 @@ RUN apk add -U --no-cache \
     postgresql-client \
     git
 
-RUN mkdir -p /etc/ssl/private && mkdir -p /etc/ssl/cert && openssl req -x509 -newkey rsa:4096 -keyout /etc/ssl/private/pgbouncer.pem -out /etc/ssl/cert/pgbouncer.pem -sha256 -days 3650 -nodes -subj "/C=US/ST=GA/L=Atlanta/O=PrizePicks/OU=DevOps/CN=pgbouncer"
+RUN mkdir -p /etc/ssl/private && mkdir -p /etc/ssl/cert && openssl req -x509 -newkey rsa:4096 -keyout /etc/ssl/private/pgbouncer.key -out /etc/ssl/certs/pgbouncer.crt -sha256 -days 3650 -nodes -subj "/C=US/ST=GA/L=Atlanta/O=PrizePicks/OU=DevOps/CN=pgbouncer"
 
 # Clone pgbouncer repository
 RUN git clone https://github.com/pgbouncer/pgbouncer.git /tmp/pgbouncer
